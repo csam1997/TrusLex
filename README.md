@@ -32,3 +32,46 @@ Explore state-level lawsuit data
 Analyze industry trends
 Interact with filters and visualizations
 Examine litigation growth over time
+
+
+__________________________________________________________________________________________________________________________________________
+
+🔎 TrusLex — AI Litigation Visibility Dashboard
+
+**AI lawsuits are exploding across the United States — but the data is buried in tables that nobody can easily read or explore.**  
+TrusLex was built to bridge that gap by turning the *Database of AI Litigation (DAIL)* into an interactive, visual, and accessible platform.
+
+The goal of this project is to make AI litigation data transparent and actionable for:
+- **Policymakers** — to identify state-level litigation trends
+- **Journalists** — to see which industries face the most legal AI challenges
+- **Researchers** — to analyze patterns and trends over time
+- **Civic tech developers & the public** — to gain visibility into how AI is impacting society
+
+## 📊 Project Description
+
+The TrusLex platform takes raw litigation data and transforms it into:
+- Interactive trending maps and charts
+- State-level case visualizations
+- Time-series graphs of litigation growth
+- Industry breakdowns of AI lawsuit frequency
+- Filters for issue type, year, and state
+
+## 🚀 Features
+
+✔ Clean dashboard for AI litigation  
+✔ Visual graphs and filters  
+✔ State-wise trend analysis  
+✔ Industry breakdown analysis  
+✔ Prepared for expansion and enhancement
+
+## 🧱 Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Frontend UI | React / JavaScript / HTML / CSS |
+| Backend API | Node.js (server.js) |
+| Data | JSON / local datasets |
+| Visualization | Charts (likely Chart.js / D3 / Plotly) |
+| Deployment | GitHub Pages 
+
+
