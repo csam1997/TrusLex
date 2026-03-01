@@ -1,6 +1,15 @@
 # TrusLex
 AI lawsuits are exploding across America — but the data is buried where no one can see it. We built Truslex to change that.
 
+📂 Test Data
+
+The testData/ folder contains raw dataset files used for development, testing, and validation of the TrusLex dashboard.
+These files are derived from the Database of AI Litigation (DAIL) and include structured litigation records and secondary source references.
+
+testData/
+├── Case_Table_2026-Feb-21_1952.xlsv
+└── Secondary_Source_Coverage_Table2026-Feb-21_2058.xlsv
+
 ### How to Run TrusLex: 
 ### 1️⃣ Clone the Repository:
 git clone https://github.com/csam1997/TrusLex.git
