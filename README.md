@@ -35,8 +35,7 @@ Examine litigation growth over time
 
 
 __________________________________________________________________________________________________________________________________________
-
-🔎 TrusLex — AI Litigation Visibility Dashboard
+**🔎 TrusLex — AI Litigation Visibility Dashboard**
 
 **AI lawsuits are exploding across the United States — but the data is buried in tables that nobody can easily read or explore.**  
 TrusLex was built to bridge that gap by turning the *Database of AI Litigation (DAIL)* into an interactive, visual, and accessible platform.
