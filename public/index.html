@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>TrustLex — AI Litigation Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070810;--surface:#0f1118;--surface2:#161926;--surface3:#1c2033;
+  --border:#1e2236;--border2:#272d47;
+  --accent:#c9a84c;--accent2:#e8c97a;--accent3:#f5dfa0;
+  --red:#e05252;--blue:#4a90d9;--green:#52b788;
+  --purple:#9b7fe8;--teal:#4ecdc4;--orange:#f4845f;
+  --text:#e8e6f0;--muted:#6b6d85;--muted2:#8890aa;
+  --font-h:'Outfit',system-ui,sans-serif;
+  --font-b:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-m:'JetBrains Mono','Courier New',monospace;
+}
+html{scroll-behavior:auto;overflow-anchor:none}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;overflow-anchor:none}
+
+.header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,8,16,.97);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:13px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#7a5a14,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 24px rgba(201,168,76,.4);flex-shrink:0}
+.logo h1{font-family:var(--font-h);font-size:21px;font-weight:800;letter-spacing:-.5px;color:var(--accent3)}
+.logo p{font-size:12px;color:var(--muted);font-family:var(--font-m);letter-spacing:1.6px;text-transform:uppercase;margin-top:2px}
+.header-right{display:flex;gap:8px;align-items:center}
+.badge{padding:4px 11px;border-radius:20px;font-size:12px;font-family:var(--font-m);border:1px solid;letter-spacing:.4px}
+.badge-gold{border-color:rgba(201,168,76,.4);color:var(--accent);background:rgba(201,168,76,.07)}
+#source-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-family:var(--font-m);letter-spacing:.4px;border:1px solid rgba(74,144,217,.3);color:var(--muted2);background:rgba(74,144,217,.06);transition:all .3s}
+
+#upload-bar{background:linear-gradient(90deg,rgba(201,168,76,.07),rgba(201,168,76,.03));border-bottom:1px solid rgba(201,168,76,.12);padding:9px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.upload-lbl{font-size:12px;color:var(--muted);font-family:var(--font-m);letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+#upload-input{display:none}
+.upload-btn{padding:6px 14px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.35);border-radius:6px;color:var(--accent);font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.upload-btn:hover{background:rgba(201,168,76,.2);border-color:var(--accent)}
+#upload-status{font-size:13px;color:var(--muted2);font-family:var(--font-m);flex:1}
+#upload-status.ok{color:var(--green)}
+#upload-status.err{color:var(--red)}
+.reset-data-btn{padding:4px 11px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s;font-family:var(--font-m);white-space:nowrap}
+.reset-data-btn:hover{border-color:var(--red);color:var(--red)}
+
+#empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:40px;text-align:center;gap:20px}
+#empty-state .empty-icon{font-size:56px;opacity:.35}
+#empty-state h2{font-family:var(--font-h);font-size:26px;color:var(--accent2);font-weight:700}
+#empty-state p{font-size:15px;color:var(--muted2);max-width:420px;line-height:1.8}
+.empty-upload-btn{display:inline-block;padding:10px 24px;background:var(--accent);color:#000;border-radius:8px;cursor:pointer;font-weight:700;font-size:15px;transition:all .2s}
+.empty-upload-btn:hover{background:#e8c97a;transform:translateY(-1px)}
+.optional-btn{background:rgba(155,127,232,.18);color:var(--purple);border:1px solid rgba(155,127,232,.35)}
+.optional-btn:hover{background:rgba(155,127,232,.3);color:#c9b8f5;transform:translateY(-1px)}
+.empty-upload-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:24px 0}
+.empty-upload-box{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 24px;border-radius:12px;min-width:240px;max-width:300px}
+.required-box{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25)}
+.optional-box{background:rgba(155,127,232,.04);border:1px dashed rgba(155,127,232,.3)}
+.empty-box-label{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--accent);font-family:var(--font-m)}
+.optional-lbl{color:var(--purple)}
+.empty-box-hint{font-size:12px;color:var(--muted2);text-align:center;font-family:var(--font-m)}
+.file-chosen{font-size:12px;color:var(--muted);font-family:var(--font-m);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.file-chosen.has-file{color:var(--accent)}
+.empty-go-btn{padding:12px 36px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:800;font-size:14px;cursor:pointer;transition:all .2s;margin-bottom:28px;font-family:var(--font-h)}
+.empty-go-btn:disabled{background:rgba(201,168,76,.2);color:rgba(0,0,0,.3);cursor:not-allowed;transform:none}
+.empty-go-btn:not(:disabled):hover{background:#e8c97a;transform:translateY(-2px)}
+.secondary-upload-btn{background:rgba(155,127,232,.1);color:var(--purple);border:1px solid rgba(155,127,232,.3);font-size:13px;padding:5px 12px}
+.secondary-upload-btn:hover{background:rgba(155,127,232,.22)}
+.opt-badge{font-size:8px;font-weight:600;letter-spacing:.8px;opacity:.7;margin-left:4px;text-transform:uppercase}
+.empty-steps{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.empty-step{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;width:190px}
+.empty-step .step-num{font-family:var(--font-m);font-size:12px;color:var(--accent);letter-spacing:1px;margin-bottom:6px}
+.empty-step p{font-size:13px;color:var(--muted2);line-height:1.6}
+
+.main{padding:22px 28px;max-width:1560px;margin:0 auto}
+.stats-row{display:grid;gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px;position:relative;overflow:hidden;transition:all .25s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.stat-lbl{font-size:12px;color:var(--muted);font-family:var(--font-m);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px}
+.stat-val{font-family:var(--font-h);font-size:30px;font-weight:800;color:var(--accent2);line-height:1}
+.stat-val.sm{font-size:15px;padding-top:7px;font-weight:700;line-height:1.2}
+.stat-sub{font-size:13px;color:var(--muted2);margin-top:4px}
+.trend{position:absolute;top:14px;right:12px;font-size:12px;padding:2px 6px;border-radius:8px;font-family:var(--font-m)}
+.trend-up{background:rgba(82,183,136,.12);color:var(--green)}
+.trend-live{background:rgba(74,144,217,.1);color:var(--blue)}
+
+.grid{display:grid;grid-template-columns:272px 1fr;gap:16px}
+.filters{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px;position:sticky;top:72px;height:fit-content;max-height:calc(100vh - 90px);overflow-y:auto}
+.filters::-webkit-scrollbar{width:3px}
+.filters::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.panel-title{font-family:var(--font-h);font-size:15px;font-weight:700;margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--border);color:var(--accent3)}
+.fg{margin-bottom:15px}
+.flbl{font-size:12px;color:var(--muted);font-family:var(--font-m);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px}
+.fselect{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-family:var(--font-b);font-size:14px;cursor:pointer;transition:border-color .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6d85' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:24px}
+.fselect:focus{outline:none;border-color:var(--accent)}
+.fselect option{background:var(--surface2)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:4px 10px;border-radius:16px;font-size:13px;border:1px solid var(--border);cursor:pointer;transition:all .2s;color:var(--muted);background:transparent;font-family:var(--font-m)}
+.chip:hover,.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(201,168,76,.09)}
+.reset-btn{width:100%;padding:9px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.reset-btn:hover{border-color:var(--red);color:var(--red);background:rgba(224,82,82,.04)}
+.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Country chips */
+.country-chips{display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto}
+.country-chips::-webkit-scrollbar{width:2px}
+.country-chips::-webkit-scrollbar-thumb{background:var(--border2)}
+.country-chip{padding:3px 8px;border-radius:12px;font-size:12px;border:1px solid rgba(155,127,232,.3);cursor:pointer;transition:all .2s;color:var(--muted2);background:rgba(155,127,232,.04);font-family:var(--font-m);white-space:nowrap}
+.country-chip:hover,.country-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(201,168,76,.1);font-weight:600}
+
+.right{display:flex;flex-direction:column;gap:15px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-title{font-family:var(--font-h);font-size:16px;font-weight:700;color:var(--accent3)}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px;font-family:var(--font-m);letter-spacing:.4px}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+
+/* MAP — padding-bottom locks aspect ratio, PREVENTS page zoom on SVG rerender */
+#map-wrap{position:relative;background:var(--surface2);border-radius:10px;overflow:hidden;touch-action:none;width:100%;aspect-ratio:960/580}
+#world-map-wrap{position:relative;background:var(--surface2);border-radius:10px;overflow:hidden;touch-action:none;width:100%;aspect-ratio:960/460}
+#world-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--muted2)}
+#map-svg{position:absolute;top:0;left:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none;touch-action:none}
+#map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,22,.9);border-radius:10px;flex-direction:column;gap:10px;font-family:var(--font-m);font-size:13px;color:var(--muted2)}
+.spinner{width:26px;height:26px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.map-legend{display:flex;align-items:center;gap:9px;margin-top:10px}
+.legend-bar{flex:1;height:5px;border-radius:3px;background:linear-gradient(90deg,#111e38,#1d3f78,#c9a84c,#e05252)}
+.legend-lbl{font-size:13px;color:var(--muted);font-family:var(--font-m)}
+
+#tooltip{display:none;position:fixed;background:rgba(12,14,24,.97);border:1px solid rgba(201,168,76,.35);border-radius:11px;padding:13px 15px;font-size:14px;box-shadow:0 12px 40px rgba(0,0,0,.75);z-index:600;pointer-events:none;min-width:175px;backdrop-filter:blur(8px)}
+.tt-title{font-family:var(--font-h);font-size:15px;font-weight:700;color:var(--accent2);margin-bottom:9px}
+.tt-divider{height:1px;background:var(--border);margin-bottom:9px}
+.tt-row{display:flex;justify-content:space-between;gap:14px;color:var(--muted2);margin-bottom:4px;font-size:13px}
+.tt-row span:last-child{color:var(--text);font-weight:600}
+
+.clear-btn{background:rgba(201,168,76,.09);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:4px 10px;color:var(--accent);font-size:13px;cursor:pointer;transition:all .2s;font-family:var(--font-b);font-weight:500}
+.clear-btn:hover{background:rgba(201,168,76,.18)}
+.clear-btn.hidden{display:none}
+
+canvas{display:block;width:100%}
+.cases-list{display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;overflow-anchor:none}
+.cases-list::-webkit-scrollbar{width:3px}
+.cases-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.case-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start;transition:all .2s}
+.case-item:hover{border-color:rgba(201,168,76,.25);background:var(--surface3)}
+.case-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.case-name{font-size:15px;font-weight:600;margin-bottom:3px;line-height:1.4;color:var(--text)}
+.case-name a{color:var(--text);text-decoration:none;border-bottom:1px dashed rgba(201,168,76,.45);transition:color .15s,border-color .15s}
+.case-name a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.ext-icon{font-size:11px;opacity:.5;margin-left:2px}
+.case-name a{color:inherit;text-decoration:none;border-bottom:1px dashed rgba(201,168,76,.45);transition:all .15s}
+.case-name a:hover{color:var(--accent2);border-bottom-color:var(--accent)}
+.case-name a::after{content:'↗';font-size:11px;margin-left:3px;opacity:.5}
+.case-meta{font-size:13px;color:var(--muted2);font-family:var(--font-m)}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.tag{padding:3px 8px;border-radius:7px;font-size:12px;border:1px solid;font-family:var(--font-m)}
+
+.methodology{background:rgba(201,168,76,.03);border:1px solid rgba(201,168,76,.12);border-radius:13px;padding:16px 20px}
+.methodology h3{font-family:var(--font-h);font-size:15px;color:var(--accent2);margin-bottom:7px;font-weight:700}
+.methodology p{font-size:13px;color:var(--muted2);line-height:1.8}
+footer{margin-top:28px;padding:14px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted);font-family:var(--font-m);letter-spacing:.4px}
+.state-path{stroke:#0d1020;stroke-width:.5px;transition:opacity .15s}
+
+@media(max-width:1100px){.grid{grid-template-columns:1fr}.charts-row{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(2,1fr)}.main{padding:14px}.header{padding:11px 14px}#upload-bar{padding:7px 14px}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">⚖</div>
+    <div>
+      <h1>TrustLex</h1>
+      <p>AI Litigation Explorer · DAIL Dataset</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge badge-gold">DAIL v2026</span>
+    <div id="source-pill">● Awaiting Upload</div>
+    <span style="font-size:12px;color:var(--muted);font-family:var(--font-m)">GW TAI Hackathon 2026</span>
+  </div>
+</header>
+
+<div id="upload-bar">
+  <span class="upload-lbl">Data Source</span>
+  <label class="upload-btn" for="upload-input">⬆ Upload DAIL XLSX</label>
+  <input type="file" id="upload-input" accept=".xlsx,.xls">
+  <label class="upload-btn secondary-upload-btn" for="secondary-input" id="secondary-lbl" title="Optional: upload Secondary Source Coverage XLSX to add case hyperlinks">＋ Secondary Sources <span class="opt-badge">optional</span></label>
+  <input type="file" id="secondary-input" accept=".xlsx,.xls">
+  <span id="upload-status">Select your DAIL dataset to begin · Secondary sources add article links</span>
+  <button class="reset-data-btn" onclick="resetData()">↺ Clear Data</button>
+</div>
+
+<div id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div class="tt-divider"></div>
+  <div class="tt-row"><span>Cases</span><span id="tt-count"></span></div>
+  <div class="tt-row"><span>Top Claim</span><span id="tt-claim"></span></div>
+  <div class="tt-row"><span>Top Sector</span><span id="tt-sector"></span></div>
+  <div class="tt-row"><span>Settled</span><span id="tt-settled"></span></div>
+</div>
+
+<div id="empty-state">
+  <div class="empty-icon">⚖</div>
+  <h2>Visualize AI Litigation Trends</h2>
+  <p>Explore AI litigation across the US and globally — filter by jurisdiction, year, claim type, and sector. Upload your DAIL dataset to start visualizing trends. Optionally add secondary sources to enrich cases with direct article links.</p>
+
+  <div class="empty-upload-row">
+    <div class="empty-upload-box required-box">
+      <div class="empty-box-label">REQUIRED</div>
+      <label class="empty-upload-btn" for="upload-input">⬆ Choose DAIL XLSX</label>
+      <div id="dail-file-name" class="file-chosen">No file chosen</div>
+      <div class="empty-box-hint">Case_Table_*.xlsx from DAIL</div>
+    </div>
+    <div class="empty-upload-box optional-box">
+      <div class="empty-box-label optional-lbl">OPTIONAL</div>
+      <label class="empty-upload-btn optional-btn" for="secondary-input">＋ Secondary Sources</label>
+      <div id="secondary-file-name" class="file-chosen">No file chosen</div>
+      <div class="empty-box-hint">Secondary_Source_Coverage_*.xlsx — enriches cases with article links</div>
+    </div>
+  </div>
+
+  <button class="empty-go-btn" id="empty-go-btn" onclick="triggerUpload()" disabled>Upload &amp; Explore →</button>
+
+  <div class="empty-steps">
+    <div class="empty-step"><div class="step-num">STEP 01</div><p>Download your case export from the DAIL database as XLSX</p></div>
+    <div class="empty-step"><div class="step-num">STEP 02</div><p>Select your files above and hit Upload &amp; Explore</p></div>
+    <div class="empty-step"><div class="step-num">STEP 03</div><p>Interact with the map — click states or countries to slice the data your way</p></div>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none">
+<div class="main">
+  <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-card">
+      <div class="stat-lbl">Total Cases</div>
+      <div class="stat-val" id="s-total">—</div>
+      <div class="stat-sub" id="s-states">— states · — intl</div>
+      <span class="trend trend-up" id="s-trend">↑ —</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">🇺🇸 United States</div>
+      <div class="stat-val" id="s-us">—</div>
+      <div class="stat-sub" id="s-us-sub">across — states</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">🌍 International</div>
+      <div class="stat-val" id="s-intl">—</div>
+      <div class="stat-sub" id="s-intl-sub">— countries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Top Sector</div>
+      <div class="stat-val sm" id="s-sector">—</div>
+      <div class="stat-sub" id="s-sector-count">— cases</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Top Claim Type</div>
+      <div class="stat-val sm" id="s-claim">—</div>
+      <div class="stat-sub" id="s-claim-count">— cases</div>
+      <span class="trend trend-live">● live</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="filters">
+      <div class="panel-title">⌕ Filters</div>
+      <div class="fg">
+        <div class="flbl">Year</div>
+        <div class="chips" id="year-chips"></div>
+      </div>
+      <div class="fg">
+        <div class="flbl">Industry Sector</div>
+        <select class="fselect" id="sector-sel"><option>All Sectors</option></select>
+      </div>
+      <div class="fg">
+        <div class="flbl">Claim Type</div>
+        <select class="fselect" id="claim-sel"><option>All Claims</option></select>
+      </div>
+      <div class="fg">
+        <div class="flbl">Outcome</div>
+        <select class="fselect" id="outcome-sel">
+          <option>All Outcomes</option><option>Ongoing</option>
+          <option>Settled</option><option>Dismissed</option><option>Plaintiff Win</option>
+        </select>
+      </div>
+      <div class="fg">
+        <div class="flbl">Jurisdiction</div>
+        <select class="fselect" id="jur-sel"><option>All Jurisdictions</option></select>
+      </div>
+      <!-- Country filter — same behaviour as clicking a state bubble -->
+      <div class="fg" id="country-filter-section" style="display:none">
+        <div class="flbl">Country (International)</div>
+        <div class="country-chips" id="country-chips"></div>
+      </div>
+      <button class="reset-btn" onclick="resetFilters()">⟳ Reset All Filters</button>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="flbl" style="margin-bottom:9px">Claim Legend</div>
+        <div id="legend-items"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <!-- US MAP -->
+      <div class="card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title">🗺 US Litigation Heat Map</div>
+            <div class="card-sub">Choropleth = case density · Click state to filter cases below</div>
+          </div>
+          <button id="clear-state-btn" class="clear-btn hidden" onclick="clearGeoSelection()">✕ Clear Selection</button>
+        </div>
+        <div id="map-wrap">
+          <svg id="map-svg" viewBox="0 0 960 580" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="map-loading"><div class="spinner"></div>Loading map…</div>
+        </div>
+        <div class="map-legend">
+          <span class="legend-lbl">0</span>
+          <div class="legend-bar"></div>
+          <span class="legend-lbl">High density</span>
+        </div>
+      </div>
+
+      <!-- WORLD MAP -->
+      <div class="card" id="world-card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title">🌍 International AI Litigation</div>
+            <div class="card-sub" id="world-sub">Cases outside the US · Click a country bubble to filter below</div>
+          </div>
+          <span id="intl-count-badge" style="font-size:12px;color:var(--muted);font-family:var(--font-m)"></span>
+        </div>
+        <div id="world-map-wrap">
+          <svg id="world-svg" viewBox="0 0 960 460" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="world-loading"><div class="spinner"></div>Loading world map…</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px;font-size:14px">📈 Cases Over Time</div>
+          <canvas id="chart-trend" height="150"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px;font-size:14px">🏭 By Sector</div>
+          <canvas id="chart-sector" height="150"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title" style="font-size:14px">⚖ Claim Type Breakdown</div>
+            <div class="card-sub" id="claim-sub">All jurisdictions · All filters</div>
+          </div>
+        </div>
+        <canvas id="chart-claims" height="105"></canvas>
+      </div>
+
+      <!-- NOTABLE CASES — title updates on state/country selection -->
+      <div class="card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title" id="cases-title" style="font-size:14px">📋 Notable Cases</div>
+            <div class="card-sub">DAIL · GW Law · Linked sources open in new tab</div>
+          </div>
+          <span id="cases-count" style="font-size:12px;color:var(--muted);font-family:var(--font-m)"></span>
+        </div>
+        <div class="cases-list" id="cases-list"></div>
+      </div>
+
+      <div class="methodology">
+        <h3>📄 Methodology</h3>
+        <p>TrustLex is a research visualization tool powered by the <strong style="color:var(--accent)">Database of AI Litigation (DAIL)</strong>, curated by GW Law's Ethical Technology Initiative (Victoria Neal). Jurisdiction is resolved from <code style="color:var(--accent2)">Jurisdiction_Name</code> → <code style="color:var(--accent2)">Current_Jurisdiction</code> → <code style="color:var(--accent2)">Jurisdiction_Filed</code>, including county-level court strings. When secondary sources are provided, cases link directly to coverage articles. All data is presented for research and policy awareness — not legal advice.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <span>⚖ TRUSTLEX · AI Litigation Explorer</span>
+  <span>Data: DAIL · GW Law Ethical Technology Initiative</span>
+  <span id="footer-stats">No data loaded</span>
+</footer>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+'use strict';
+
+const FIPS_TO_ABBR = {
+  '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT',
+  '10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL',
+  '18':'IN','19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD',
+  '25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE',
+  '32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND',
+  '39':'OH','40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD',
+  '47':'TN','48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV',
+  '55':'WI','56':'WY'
+};
+const ABBR_TO_NAME = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
+  CT:'Connecticut',DE:'Delaware',DC:'Washington D.C.',FL:'Florida',GA:'Georgia',
+  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',
+  KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',
+  MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',
+  NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',
+  NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',
+  OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
+  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',
+  VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'
+};
+const CLAIM_COLORS = {
+  'Privacy':'#4a90d9','Bias/Discrimination':'#e05252','IP/Copyright':'#c9a84c',
+  'Civil Rights':'#9b7fe8','Fraud/Deception':'#f4845f','Defamation':'#4ecdc4',
+  'Negligence/Tort':'#52b788','Contract':'#aaa8e0','Other':'#6b6d85'
+};
+const SECTOR_COLORS = {
+  'Technology':'#4a90d9','Employment':'#e05252','Healthcare':'#52b788',
+  'Finance':'#c9a84c','Criminal Justice':'#9b7fe8','Retail':'#4ecdc4',
+  'Government':'#f4845f','Education':'#aaa8e0','Transportation':'#52b7a8',
+  'Housing':'#e8a45c','Other':'#6b6d85'
+};
+const OUTCOME_COLORS = {
+  'Ongoing':'#4a90d9','Settled':'#52b788','Dismissed':'#6b6d85','Plaintiff Win':'#c9a84c'
+};
+
+let CASES = [];
+let usTopoData = null, mapProjection = null, mapPathGen = null, mapInited = false;
+let worldTopoData = null, worldInited = false;
+const BUBBLE_REFS = {};
+
+// Geo selection: { type: 'state'|'country', value: 'CA'|'Germany' }
+let geoSel = null;
+
+let secondaryUploaded = false; // tracks if secondary sources xlsx was uploaded
+let filters = { year:'All', sector:'All Sectors', claim:'All Claims', outcome:'All Outcomes', jur:'All Jurisdictions' };
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+async function init() {
+  fetchMapData();
+  const res = await fetchCasesFromAPI();
+  if (res.source === 'empty') {
+    showEmptyState();
+  } else {
+    CASES = res.cases || [];
+    updateSourcePill(res.source, res.count);
+    showDashboard();
+  }
+  setupUpload();
+}
+
+async function fetchCasesFromAPI() {
+  try {
+    const r = await fetch('/api/cases');
+    if (!r.ok) throw new Error('API error');
+    return await r.json();
+  } catch { return { source:'empty', count:0, cases:[] }; }
+}
+
+async function fetchMapData() {
+  try {
+    usTopoData = await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+    if (CASES.length && mapInited) drawMap(getFiltered(false).filter(c=>!c.isInternational));
+  } catch { console.warn('US map CDN unavailable, using fallback'); }
+  try {
+    worldTopoData = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    document.getElementById('world-loading').style.display = 'none';
+    if (CASES.length) drawWorldMap(getFiltered(true).filter(c=>c.isInternational));
+  } catch { 
+    console.warn('World map CDN unavailable');
+    document.getElementById('world-loading').style.display = 'none';
+  }
+}
+
+function showEmptyState() {
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+function showDashboard() {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  updateSourcePill(CASES.length > 0 ? 'upload' : 'empty', CASES.length);
+  mapInited = false; worldInited = false; // force map rebuild on new data
+  buildFilters();
+  buildLegend();
+  render();
+}
+function updateSourcePill(source, count) {
+  const pill = document.getElementById('source-pill');
+  if (source === 'upload') {
+    pill.textContent = `● ${count} cases loaded`;
+    pill.style.color = 'var(--accent2)';
+    pill.style.borderColor = 'rgba(201,168,76,.4)';
+    pill.style.background = 'rgba(201,168,76,.08)';
+  } else {
+    pill.textContent = '● Awaiting Upload';
+    pill.style.color = 'var(--muted2)';
+    pill.style.borderColor = 'rgba(74,144,217,.3)';
+    pill.style.background = 'rgba(74,144,217,.06)';
+  }
+}
+
+// ─── Upload ────────────────────────────────────────────────────────────────
+function setupUpload() {
+  const dailInput      = document.getElementById('upload-input');
+  const secondaryInput = document.getElementById('secondary-input');
+  const goBtn          = document.getElementById('empty-go-btn');
+  const dailName       = document.getElementById('dail-file-name');
+  const secName        = document.getElementById('secondary-file-name');
+
+  // Track selected files
+  let dailFile = null, secondaryFile = null;
+
+  // DAIL file chosen → update label + enable Go button
+  dailInput.addEventListener('change', e => {
+    dailFile = e.target.files[0] || null;
+    if (dailName) {
+      dailName.textContent = dailFile ? dailFile.name : 'No file chosen';
+      dailName.className   = 'file-chosen' + (dailFile ? ' has-file' : '');
+    }
+    // Also update toolbar label
+    const lbl = document.querySelector('.upload-btn[for="upload-input"], label[for="upload-input"].upload-btn');
+    if (lbl) lbl.style.borderColor = dailFile ? 'var(--accent)' : '';
+    if (goBtn) goBtn.disabled = !dailFile;
+    // Auto-upload from toolbar (when already on dashboard)
+    if (dailFile && document.getElementById('dashboard').style.display !== 'none') {
+      doUpload(dailFile, secondaryFile);
+    }
+  });
+
+  // Secondary file chosen → update label only
+  secondaryInput.addEventListener('change', e => {
+    secondaryFile = e.target.files[0] || null;
+    if (secName) {
+      secName.textContent = secondaryFile ? secondaryFile.name : 'No file chosen';
+      secName.className   = 'file-chosen' + (secondaryFile ? ' has-file' : '');
+    }
+    // Update toolbar secondary label
+    const secLbl = document.getElementById('secondary-lbl');
+    if (secLbl) secLbl.style.borderColor = secondaryFile ? '#9b7fe8' : '';
+    // If already on dashboard and DAIL already loaded, re-upload with secondary
+    if (secondaryFile && dailFile && document.getElementById('dashboard').style.display !== 'none') {
+      doUpload(dailFile, secondaryFile);
+    }
+  });
+
+  // Go button (empty state)
+  window.triggerUpload = function() {
+    if (dailFile) doUpload(dailFile, secondaryFile);
+  };
+}
+
+async function doUpload(dailFile, secondaryFile) {
+  const status = document.getElementById('upload-status');
+  status.textContent = `Uploading ${dailFile.name}${secondaryFile ? ' + secondary sources' : ''}…`;
+  status.className = '';
+  const fd = new FormData();
+  fd.append('dail', dailFile);
+  if (secondaryFile) fd.append('secondary', secondaryFile);
+  try {
+    const res  = await fetch('/api/upload', { method:'POST', body:fd });
+    const json = await res.json();
+    if (json.success) {
+      const srcNote = json.usedUploadedSecondary ? ' · sources uploaded' : ' · embedded sources';
+      status.textContent = `✓ ${json.message} · Years: ${json.yearsRange}${srcNote}`;
+      status.className = 'ok';
+      const apiData = await fetchCasesFromAPI();
+      CASES = apiData.cases || [];
+      updateSourcePill('upload', CASES.length);
+      secondaryUploaded = json.usedUploadedSecondary || false;
+      mapInited = false; worldInited = false;
+      geoSel = null;
+      filters = { year:'All', sector:'All Sectors', claim:'All Claims', outcome:'All Outcomes', jur:'All Jurisdictions', geo:'all' };
+      showDashboard();
+    } else {
+      status.textContent = '⚠ ' + (json.error || json.message || 'Upload failed');
+      status.className = 'err';
+    }
+  } catch(uploadErr) {
+    console.error('Upload error:', uploadErr);
+    status.textContent = '✗ Error: ' + uploadErr.message;
+    status.className = 'err';
+  }
+}
+
+
+async function resetData() {
+  try { await fetch('/api/reset', { method:'POST' }); } catch {}
+  CASES = []; secondaryUploaded = false; mapInited = false; geoSel = null;
+  updateSourcePill('empty', 0);
+  document.getElementById('upload-status').textContent = 'Data cleared.';
+  document.getElementById('upload-status').className = '';
+  showEmptyState();
+}
+
+// ─── Filters ───────────────────────────────────────────────────────────────
+function buildFilters() {
+  buildYearChips();
+  const sectors = [...new Set(CASES.map(c=>c.sector).filter(Boolean))].sort();
+  const claims  = [...new Set(CASES.map(c=>c.claimType).filter(Boolean))].sort();
+  const jurs    = [...new Set(CASES.map(c=>c.jurName||c.jurisdiction).filter(v=>v&&v!=='Unknown'))].sort().slice(0,40);
+  populateSel('sector-sel', sectors, 'All Sectors');
+  populateSel('claim-sel',  claims,  'All Claims');
+  populateSel('jur-sel',    jurs,    'All Jurisdictions');
+  document.getElementById('sector-sel').onchange  = e => { filters.sector  = e.target.value; render(); };
+  document.getElementById('claim-sel').onchange   = e => { filters.claim   = e.target.value; render(); };
+  document.getElementById('outcome-sel').onchange = e => { filters.outcome = e.target.value; render(); };
+  document.getElementById('jur-sel').onchange     = e => { filters.jur     = e.target.value; render(); };
+  buildCountryChips();
+}
+
+function buildCountryChips() {
+  const intlCases = CASES.filter(c => c.isInternational && c.country);
+  if (!intlCases.length) return;
+  const countryCount = {};
+  intlCases.forEach(c => { countryCount[c.country] = (countryCount[c.country]||0)+1; });
+  const countries = Object.entries(countryCount).sort((a,b)=>b[1]-a[1]);
+  const container = document.getElementById('country-chips');
+  container.innerHTML = '';
+  countries.forEach(([country, cnt]) => {
+    const ch = document.createElement('span');
+    ch.className = 'country-chip';
+    ch.textContent = `${country} (${cnt})`;
+    ch.dataset.country = country;
+    ch.onclick = () => selectCountry(country);
+    container.appendChild(ch);
+  });
+  document.getElementById('country-filter-section').style.display = 'block';
+}
+
+function populateSel(id, vals, allLabel) {
+  const sel = document.getElementById(id), cur = sel.value;
+  sel.innerHTML = `<option>${allLabel}</option>` + vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('');
+}
+
+function buildYearChips() {
+  const c = document.getElementById('year-chips');
+  const years = [...new Set(CASES.map(d=>d.year).filter(y=>y&&y>=2000&&y<=2030))].sort();
+  c.innerHTML = '';
+  ['All',...years].forEach(y => {
+    const s = document.createElement('span');
+    s.className = 'chip' + (String(y)===filters.year||(y==='All'&&filters.year==='All')?' active':'');
+    s.textContent = y;
+    s.onclick = () => {
+      filters.year = String(y);
+      document.querySelectorAll('#year-chips .chip').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      render();
+    };
+    c.appendChild(s);
+  });
+}
+
+function buildLegend() {
+  const c = document.getElementById('legend-items');
+  c.innerHTML = '';
+  Object.entries(CLAIM_COLORS).forEach(([k,v]) => {
+    const d = document.createElement('div'); d.className = 'legend-item';
+    d.innerHTML = `<div class="dot" style="background:${v}"></div><span style="font-size:10px;color:var(--muted2)">${k}</span>`;
+    c.appendChild(d);
+  });
+}
+
+function getFiltered(includeGeo=true) {
+  return CASES.filter(c => {
+    if (filters.year !== 'All' && String(c.year) !== filters.year) return false;
+    if (filters.sector !== 'All Sectors' && c.sector !== filters.sector) return false;
+    if (filters.claim  !== 'All Claims'  && c.claimType !== filters.claim) return false;
+    if (filters.outcome !== 'All Outcomes' && c.outcome !== filters.outcome) return false;
+    if (filters.jur !== 'All Jurisdictions') {
+      if ((c.jurName||c.jurisdiction||'') !== filters.jur) return false;
+    }
+    if (includeGeo && geoSel) {
+      if (geoSel.type === 'state') {
+        if ((c.state||'').toUpperCase() !== geoSel.value.toUpperCase()) return false;
+      } else if (geoSel.type === 'country') {
+        if (c.country !== geoSel.value) return false;
+      }
+    }
+    return true;
+  });
+}
+
+function resetFilters() {
+  filters = { year:'All', sector:'All Sectors', claim:'All Claims', outcome:'All Outcomes', jur:'All Jurisdictions' };
+  geoSel = null;
+  ['sector-sel','claim-sel','outcome-sel','jur-sel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.options[0].value;
+  });
+  document.querySelectorAll('#year-chips .chip').forEach((c,i)=>c.classList.toggle('active',i===0));
+  document.querySelectorAll('.country-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('clear-state-btn').classList.add('hidden');
+  set('cases-title','📋 Notable Cases');
+  buildYearChips();
+  render();
+}
+
+function clearGeoSelection() {
+  if (_isRendering) return;
+  _isRendering = true;
+  const _sy = window.scrollY;
+  geoSel = null;
+  document.getElementById('clear-state-btn').classList.add('hidden');
+  document.querySelectorAll('.country-chip').forEach(c=>c.classList.remove('active'));
+  set('cases-title','📋 Notable Cases');
+  highlightMapSelection();
+  const f = getFiltered(true);
+  updateStats(f); drawSectorChart(f); drawClaimsChart(f); renderCases(f);
+  set('footer-stats',`${f.length} cases · DAIL`);
+  requestAnimationFrame(()=>{ window.scrollTo({top:_sy,behavior:'instant'}); _isRendering=false; });
+  setTimeout(()=>{ _isRendering=false; }, 500);
+}
+
+// ─── Geo selection (state OR country) ────────────────────────────────────
+function selectState(abbr) {
+  if (_isRendering) return;
+  _isRendering = true;
+  const _sy = window.scrollY;
+  if (geoSel && geoSel.type === 'state' && geoSel.value === abbr) {
+    geoSel = null;
+    document.getElementById('clear-state-btn').classList.add('hidden');
+    set('cases-title','📋 Notable Cases');
+    highlightMapSelection();
+    const f = getFiltered(true);
+    updateStats(f); drawSectorChart(f); drawClaimsChart(f); renderCases(f);
+    set('footer-stats',`${f.length} cases · DAIL`);
+    requestAnimationFrame(()=>{ window.scrollTo({top:_sy,behavior:'instant'}); _isRendering=false; });
+    setTimeout(()=>{ _isRendering=false; }, 500);
+    return;
+  }
+  geoSel = { type:'state', value: abbr };
+  document.querySelectorAll('.country-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('clear-state-btn').classList.remove('hidden');
+  set('cases-title', `📋 Cases in ${ABBR_TO_NAME[abbr]||abbr}`);
+  highlightMapSelection();
+  const f = getFiltered(true);
+  updateStats(f); drawSectorChart(f); drawClaimsChart(f); renderCases(f);
+  set('footer-stats',`${f.length} cases in ${ABBR_TO_NAME[abbr]||abbr} · DAIL`);
+  requestAnimationFrame(()=>{ window.scrollTo({top:_sy,behavior:'instant'}); _isRendering=false; });
+  setTimeout(()=>{ _isRendering=false; }, 500);
+}
+
+function selectCountry(country) {
+  if (_isRendering) return;
+  _isRendering = true;
+  const _sy = window.scrollY;
+  if (geoSel && geoSel.type === 'country' && geoSel.value === country) {
+    geoSel = null;
+    document.getElementById('clear-state-btn').classList.add('hidden');
+    document.querySelectorAll('.country-chip').forEach(c=>c.classList.remove('active'));
+    set('cases-title','📋 Notable Cases');
+    highlightMapSelection();
+    const f = getFiltered(true);
+    updateStats(f); drawSectorChart(f); drawClaimsChart(f); renderCases(f);
+    set('footer-stats',`${f.length} cases · DAIL`);
+    requestAnimationFrame(()=>{ window.scrollTo({top:_sy,behavior:'instant'}); _isRendering=false; });
+    setTimeout(()=>{ _isRendering=false; }, 500);
+    return;
+  }
+  geoSel = { type:'country', value: country };
+  highlightMapSelection();
+  document.querySelectorAll('.country-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.country === country);
+  });
+  document.getElementById('clear-state-btn').classList.remove('hidden');
+  set('cases-title', `📋 Cases in ${country}`);
+  const f = getFiltered(true);
+  updateStats(f); drawSectorChart(f); drawClaimsChart(f); renderCases(f);
+  set('footer-stats',`${f.length} cases in ${country} · DAIL`);
+  requestAnimationFrame(()=>{ window.scrollTo({top:_sy,behavior:'instant'}); _isRendering=false; });
+  setTimeout(()=>{ _isRendering=false; }, 500);
+}
+
+// ─── Render ────────────────────────────────────────────────────────────────
+let _isRendering = false;
+function render() {
+  if (_isRendering) return;
+  _isRendering = true;
+  const _sy = window.scrollY;
+  const data    = getFiltered(true);
+  const mapData = getFiltered(false).filter(c=>!c.isInternational);
+  const intlData = data.filter(c=>c.isInternational);
+  updateStats(data);
+  drawMap(mapData);
+  drawWorldMap(intlData);
+  drawTrendChart(getFiltered(false));
+  drawSectorChart(data);
+  drawClaimsChart(data);
+  renderCases(data);
+  set('footer-stats',`${data.length} cases · DAIL`);
+  requestAnimationFrame(() => { window.scrollTo({top:_sy,behavior:'instant'}); _isRendering = false; });
+  setTimeout(()=>{ _isRendering=false; }, 600); // safety release
+}
+
+function updateStats(data) {
+  const usStates = new Set(data.filter(c=>c.state).map(c=>c.state)).size;
+  const intlCount = data.filter(c=>c.isInternational).length;
+  const settled  = data.filter(c=>c.outcome==='Settled');
+  const sm={},cm={};
+  data.forEach(c=>{ sm[c.sector]=(sm[c.sector]||0)+1; cm[c.claimType]=(cm[c.claimType]||0)+1; });
+  const ts = Object.entries(sm).sort((a,b)=>b[1]-a[1])[0]||['—',0];
+  const tc = Object.entries(cm).sort((a,b)=>b[1]-a[1])[0]||['—',0];
+  const allYears = [...new Set(CASES.map(c=>c.year).filter(Boolean))].sort();
+  const minYear  = allYears[0]||2019;
+  const base     = Math.max(CASES.filter(c=>c.year===minYear).length,1);
+  const trend    = Math.max(0, Math.round((CASES.length-base)/base*100));
+
+  const usCount = data.filter(c => !c.isInternational).length;
+  const intlCountries = new Set(data.filter(c=>c.isInternational).map(c=>c.country)).size;
+  set('s-total',        data.length);
+  set('s-states',       `${usStates} states · ${intlCount} intl`);
+  set('s-trend',        `↑ ${trend}% total growth`);
+  set('s-us',           usCount);
+  set('s-us-sub',       `across ${usStates} state${usStates!==1?'s':''}`);
+  set('s-intl',         intlCount);
+  set('s-intl-sub',     `${intlCountries} countr${intlCountries!==1?'ies':'y'}`);
+  set('s-sector',       ts[0]); set('s-sector-count',`${ts[1]} cases`);
+  set('s-claim',        tc[0]); set('s-claim-count',  `${tc[1]} cases`);
+  set('claim-sub',      `${data.length} cases · ${geoSel ? (geoSel.type==='state'?(ABBR_TO_NAME[geoSel.value]||geoSel.value):geoSel.value) : 'All jurisdictions'}`);
+}
+function set(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+
+// ─── US MAP (ZERO-REFLOW: build once, update attrs only) ────────────────
+function drawMap(data) {
+  const svg = d3.select('#map-svg');
+  const loading = document.getElementById('map-loading');
+  const W=960, H=580;
+
+  const counts = {};
+  data.forEach(c=>{ const st=(c.state||'').toUpperCase().trim(); if(st) counts[st]=(counts[st]||0)+1; });
+  const maxCount = Math.max(...Object.values(counts),1);
+
+  function stateColor(cnt){
+    if(!cnt) return '#0d1524'; const t=cnt/maxCount;
+    if(t<0.15) return '#111e38'; if(t<0.35) return '#162b52';
+    if(t<0.55) return '#1d3f78'; if(t<0.75) return '#8a6c1c';
+    return '#c9a84c';
+  }
+  function bubColor(cnt){
+    if(!cnt) return '#192040'; const t=cnt/maxCount;
+    if(t<0.25) return '#1e4a8a'; if(t<0.50) return '#2a6abf';
+    if(t<0.75) return '#c9a84c'; return '#e05252';
+  }
+
+  if(!usTopoData){
+    loading.style.display='none';
+    if(!mapInited){ buildFallbackMap(svg,W,H); mapInited=true; }
+    updateFallbackMap(counts,maxCount,data); return;
+  }
+  loading.style.display='none';
+
+  if(!mapProjection){
+    mapProjection=d3.geoAlbersUsa().scale(1100).translate([W*.49,H*.50]);
+    mapPathGen=d3.geoPath().projection(mapProjection);
+  }
+
+  if(!mapInited){
+    svg.selectAll('*').remove();
+    Object.keys(BUBBLE_REFS).forEach(k=>delete BUBBLE_REFS[k]);
+
+    const statesGeo = topojson.feature(usTopoData, usTopoData.objects.states);
+    const stateMesh = topojson.mesh(usTopoData, usTopoData.objects.states,(a,b)=>a!==b);
+
+    const defs=svg.append('defs');
+    const gf=defs.append('filter').attr('id','bg2').attr('x','-60%').attr('y','-60%').attr('width','220%').attr('height','220%');
+    gf.append('feGaussianBlur').attr('stdDeviation','4').attr('result','blur');
+    const fm=gf.append('feMerge');
+    fm.append('feMergeNode').attr('in','blur'); fm.append('feMergeNode').attr('in','SourceGraphic');
+    const bgG=defs.append('radialGradient').attr('id','mapBg2').attr('cx','50%').attr('cy','50%').attr('r','60%');
+    bgG.append('stop').attr('offset','0%').attr('stop-color','#0c1120');
+    bgG.append('stop').attr('offset','100%').attr('stop-color','#070810');
+    svg.append('rect').attr('width',W).attr('height',H).attr('fill','url(#mapBg2)');
+
+    svg.append('g').attr('class','states-layer')
+      .selectAll('path').data(statesGeo.features).join('path')
+        .attr('class','state-path').attr('d',mapPathGen)
+        .attr('data-abbr', d=>FIPS_TO_ABBR[String(d.id).padStart(2,'0')]||'')
+        .on('mouseenter', function(ev,d){
+          const abbr=FIPS_TO_ABBR[String(d.id).padStart(2,'0')];
+          if(abbr) showTip(ev, abbr, ABBR_TO_NAME[abbr]||abbr, counts[abbr]||0, data);
+        })
+        .on('mousemove', moveTip).on('mouseleave', hideTip)
+        .on('click', function(ev,d){
+          ev.preventDefault(); ev.stopPropagation();
+          const abbr=FIPS_TO_ABBR[String(d.id).padStart(2,'0')];
+          if(abbr) selectState(abbr);
+        });
+
+    svg.append('path').datum(stateMesh)
+      .attr('d',mapPathGen).attr('fill','none')
+      .attr('stroke','#1e2848').attr('stroke-width',.7)
+      .attr('pointer-events','none');
+
+    const bLayer=svg.append('g').attr('class','bubbles-layer');
+    statesGeo.features.forEach(feat=>{
+      const fips=String(feat.id).padStart(2,'0');
+      const abbr=FIPS_TO_ABBR[fips];
+      if(!abbr) return;
+      const cen=mapProjection(d3.geoCentroid(feat));
+      if(!cen) return;
+      const g=bLayer.append('g').attr('data-state',abbr).style('cursor','pointer');
+      const ring =g.append('circle').attr('cx',cen[0]).attr('cy',cen[1]).attr('fill','none').attr('stroke','#e8c97a').attr('stroke-width',1.2).attr('opacity',0).attr('r',20).attr('pointer-events','none');
+      const glow =g.append('circle').attr('cx',cen[0]).attr('cy',cen[1]).attr('fill','none').attr('stroke-width',.6).attr('r',16).attr('opacity',0).attr('pointer-events','none');
+      const main =g.append('circle').attr('cx',cen[0]).attr('cy',cen[1]).attr('r',11);
+      const label=g.append('text').attr('x',cen[0]).attr('y',cen[1]-3).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-family','JetBrains Mono,monospace').attr('pointer-events','none');
+      const ctxt =g.append('text').attr('x',cen[0]).attr('y',cen[1]+8).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',11).attr('font-family','JetBrains Mono,monospace').attr('font-weight','700').attr('fill','#e8c97a').attr('pointer-events','none').text('');
+      BUBBLE_REFS[abbr]={g,ring,glow,main,label,ctxt,cx:cen[0],cy:cen[1]};
+      g.on('mouseenter', ev=>showTip(ev, abbr, ABBR_TO_NAME[abbr]||abbr, counts[abbr]||0, data))
+       .on('mousemove', moveTip).on('mouseleave', hideTip)
+       .on('click', ev=>{ ev.preventDefault(); ev.stopPropagation(); selectState(abbr); });
+    });
+
+    // Background SVG click clears selection — use capture:false, passive:false to stop scroll
+    svg.on('click', () => { if(geoSel && geoSel.type==='state') clearGeoSelection(); });
+    mapInited=true;
+  }
+
+  // UPDATE PASS — zero DOM insertion, only attr updates
+  const selAbbr = geoSel && geoSel.type==='state' ? geoSel.value : null;
+  svg.select('.states-layer').selectAll('path')
+    .attr('fill', d=>stateColor(counts[FIPS_TO_ABBR[String(d.id).padStart(2,'0')]]||0))
+    .attr('stroke', d=>selAbbr===FIPS_TO_ABBR[String(d.id).padStart(2,'0')] ? '#e8c97a' : '#1a2040')
+    .attr('stroke-width', d=>selAbbr===FIPS_TO_ABBR[String(d.id).padStart(2,'0')] ? 1.8 : 0.5)
+    .attr('opacity', d=>{
+      const a=FIPS_TO_ABBR[String(d.id).padStart(2,'0')];
+      return selAbbr && selAbbr!==a ? 0.38 : 1;
+    });
+
+  Object.entries(BUBBLE_REFS).forEach(([abbr,ref])=>{
+    const cnt=counts[abbr]||0, isSel=selAbbr===abbr, isDim=selAbbr&&!isSel;
+    const r=cnt>0?Math.max(13,Math.min(38,9+cnt*3.8)):11;
+    const fill=bubColor(cnt);
+    ref.ring.attr('r',r+10).attr('opacity',isSel?.6:0);
+    ref.glow.attr('r',r+5).attr('stroke',fill).attr('opacity',cnt>0&&!isDim?.3:0);
+    ref.main.attr('r',r).attr('fill',fill)
+      .attr('fill-opacity',cnt>0?(isDim?.25:isSel?1:.82):(isDim?.06:.15))
+      .attr('stroke',isSel?'#e8c97a':cnt>0?'#c9a84c44':'#1e2848')
+      .attr('stroke-width',isSel?2:.7).attr('filter',cnt>0?'url(#bg2)':'none');
+    ref.label.attr('y',ref.cy-(cnt>0?5:0)).attr('font-size',r>=24?13:r>=16?12:11)
+      .attr('font-weight',cnt>0?'700':'500')
+      .attr('fill',cnt>0?(isDim?'#6b6d85':'#ffffff'):'#3a4060').text(abbr);
+    ref.ctxt.attr('font-size',11).attr('fill',isSel?'#ffffff':'#e8c97a').attr('opacity',cnt>0?(isDim?.3:1):0).text(cnt>0?cnt:'');
+    ref.g.style('cursor',cnt>0?'pointer':'default');
+  });
+}
+
+function highlightMapSelection() {
+  if(!mapInited||!usTopoData) return;
+  const selAbbr = geoSel && geoSel.type==='state' ? geoSel.value : null;
+  const svg=d3.select('#map-svg');
+  const mapData=getFiltered(false).filter(c=>!c.isInternational);
+  const counts={};
+  mapData.forEach(c=>{ const st=(c.state||'').toUpperCase().trim(); if(st) counts[st]=(counts[st]||0)+1; });
+  const maxCount=Math.max(...Object.values(counts),1);
+  function bubColor(cnt){
+    if(!cnt) return '#192040'; const t=cnt/maxCount;
+    if(t<0.25) return '#1e4a8a'; if(t<0.50) return '#2a6abf';
+    if(t<0.75) return '#c9a84c'; return '#e05252';
+  }
+  svg.select('.states-layer').selectAll('path')
+    .attr('stroke', d=>selAbbr===FIPS_TO_ABBR[String(d.id).padStart(2,'0')] ? '#e8c97a' : '#1a2040')
+    .attr('stroke-width', d=>selAbbr===FIPS_TO_ABBR[String(d.id).padStart(2,'0')] ? 1.8 : 0.5)
+    .attr('opacity', d=>{ const a=FIPS_TO_ABBR[String(d.id).padStart(2,'0')]; return selAbbr&&selAbbr!==a?.38:1; });
+  Object.entries(BUBBLE_REFS).forEach(([abbr,ref])=>{
+    const cnt=counts[abbr]||0,isSel=selAbbr===abbr,isDim=selAbbr&&!isSel;
+    const r=cnt>0?Math.max(13,Math.min(38,9+cnt*3.8)):11,fill=bubColor(cnt);
+    ref.ring.attr('r',r+10).attr('opacity',isSel?.6:0);
+    ref.glow.attr('r',r+5).attr('stroke',fill).attr('opacity',cnt>0&&!isDim?.3:0);
+    ref.main.attr('r',r).attr('fill',fill)
+      .attr('fill-opacity',cnt>0?(isDim?.25:isSel?1:.82):(isDim?.06:.15))
+      .attr('stroke',isSel?'#e8c97a':cnt>0?'#c9a84c44':'#1e2848')
+      .attr('stroke-width',isSel?2:.7).attr('filter',cnt>0?'url(#bg2)':'none');
+    ref.label.attr('fill',cnt>0?(isDim?'#6b6d85':'#e8e6f0'):'#2a3050');
+    ref.ctxt.attr('fill',isSel?'#ffffff':'#e8c97a').attr('opacity',cnt>0?(isDim?.3:1):0);
+    ref.g.style('cursor',cnt>0?'pointer':'default');
+  });
+}
+
+// ─── Fallback bubble grid ──────────────────────────────────────────────────
+const FALLBACK_POS = {
+  WA:{x:95,y:108},OR:{x:88,y:156},CA:{x:79,y:232},NV:{x:130,y:214},ID:{x:168,y:148},
+  MT:{x:228,y:116},WY:{x:253,y:183},UT:{x:190,y:226},AZ:{x:184,y:290},CO:{x:265,y:240},
+  NM:{x:245,y:300},ND:{x:375,y:120},SD:{x:375,y:160},NE:{x:375,y:210},KS:{x:390,y:254},
+  OK:{x:394,y:300},TX:{x:370,y:345},MN:{x:435,y:135},IA:{x:445,y:196},MO:{x:460,y:254},
+  AR:{x:460,y:305},LA:{x:460,y:360},WI:{x:480,y:160},IL:{x:485,y:215},MS:{x:488,y:345},
+  MI:{x:520,y:155},IN:{x:515,y:210},KY:{x:525,y:265},TN:{x:520,y:300},AL:{x:515,y:340},
+  OH:{x:555,y:210},WV:{x:578,y:245},GA:{x:540,y:335},FL:{x:540,y:385},NC:{x:585,y:280},
+  SC:{x:572,y:315},VA:{x:610,y:245},MD:{x:632,y:218},DE:{x:645,y:210},PA:{x:607,y:190},
+  NJ:{x:650,y:192},NY:{x:642,y:153},CT:{x:672,y:167},RI:{x:688,y:162},MA:{x:682,y:147},
+  VT:{x:668,y:128},NH:{x:682,y:132},ME:{x:700,y:110},AK:{x:118,y:422},HI:{x:210,y:437},DC:{x:634,y:232}
+};
+const FB_REFS={};
+
+function buildFallbackMap(svg,W,H){
+  svg.selectAll('*').remove();
+  svg.append('rect').attr('width',W).attr('height',H).attr('fill','#090b14');
+  Object.entries(FALLBACK_POS).forEach(([abbr,pos])=>{
+    const g=svg.append('g').attr('data-state',abbr).style('cursor','pointer');
+    const main=g.append('circle').attr('cx',pos.x).attr('cy',pos.y).attr('r',11).attr('fill','#192040').attr('stroke','#1e2848').attr('stroke-width',.7);
+    const lbl=g.append('text').attr('x',pos.x).attr('y',pos.y).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',8).attr('font-family','JetBrains Mono,monospace').attr('fill','#2a3050').attr('pointer-events','none').text(abbr);
+    const cnt=g.append('text').attr('x',pos.x).attr('y',pos.y+9).attr('text-anchor','middle').attr('font-size',9).attr('font-family','JetBrains Mono,monospace').attr('fill','#e8c97a').attr('font-weight','700').attr('opacity',0).attr('pointer-events','none').text('');
+    FB_REFS[abbr]={g,main,lbl,cnt,pos};
+    g.on('mouseenter', ev=>showTip(ev,abbr,ABBR_TO_NAME[abbr]||abbr,0,[]))
+     .on('mousemove',moveTip).on('mouseleave',hideTip)
+     .on('click', ev=>{ ev.preventDefault(); ev.stopPropagation(); selectState(abbr); });
+  });
+  svg.on('click',()=>{ if(geoSel&&geoSel.type==='state') clearGeoSelection(); });
+}
+function updateFallbackMap(counts,maxCount,data){
+  function bubColor(cnt){ if(!cnt)return'#192040';const t=cnt/maxCount;if(t<.25)return'#1e4a8a';if(t<.50)return'#2a6abf';if(t<.75)return'#c9a84c';return'#e05252'; }
+  const selAbbr=geoSel&&geoSel.type==='state'?geoSel.value:null;
+  Object.entries(FB_REFS).forEach(([abbr,ref])=>{
+    const cnt=counts[abbr]||0,isSel=selAbbr===abbr,isDim=selAbbr&&!isSel;
+    const r=cnt>0?Math.max(13,Math.min(36,9+cnt*3.5)):11;
+    ref.main.attr('r',r).attr('fill',bubColor(cnt)).attr('fill-opacity',cnt>0?(isDim?.25:.82):(isDim?.06:.15))
+      .attr('stroke',isSel?'#e8c97a':cnt>0?'#c9a84c44':'#1e2848');
+    ref.lbl.attr('fill',cnt>0?(isDim?'#6b6d85':'#e8e6f0'):'#2a3050');
+    ref.cnt.attr('opacity',cnt>0?1:0).text(cnt>0?cnt:'');
+    ref.g.style('cursor',cnt>0?'pointer':'default');
+    ref.g.on('mouseenter', ev=>showTip(ev,abbr,ABBR_TO_NAME[abbr]||abbr,cnt,data));
+  });
+}
+
+// ─── Tooltip ───────────────────────────────────────────────────────────────
+function showTip(ev, abbr, name, count, data) {
+  const cases=data.filter(c=>(c.state||'').toUpperCase()===abbr);
+  const cm={},sm={};
+  cases.forEach(c=>{ cm[c.claimType]=(cm[c.claimType]||0)+1; sm[c.sector]=(sm[c.sector]||0)+1; });
+  const tc=Object.entries(cm).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const ts=Object.entries(sm).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  document.getElementById('tt-title').textContent = name;
+  document.getElementById('tt-count').textContent  = count;
+  document.getElementById('tt-claim').textContent  = tc;
+  document.getElementById('tt-sector').textContent = ts;
+  document.getElementById('tt-settled').textContent= cases.filter(c=>c.outcome==='Settled').length;
+  const t=document.getElementById('tooltip');
+  t.style.display='block'; t.style.left=(ev.clientX+14)+'px'; t.style.top=(ev.clientY-10)+'px';
+}
+function moveTip(ev){
+  const t=document.getElementById('tooltip');
+  if(t.style.display==='block'){ t.style.left=(ev.clientX+14)+'px'; t.style.top=(ev.clientY-10)+'px'; }
+}
+function hideTip(){ document.getElementById('tooltip').style.display='none'; }
+
+// ─── Charts ────────────────────────────────────────────────────────────────
+function getCtx(id){
+  const c=document.getElementById(id),dpr=window.devicePixelRatio||1;
+  const w=c.parentElement.clientWidth||500;
+  if(!c.dataset.logH) c.dataset.logH=c.getAttribute('height')||c.height;
+  const h=parseInt(c.dataset.logH);
+  // Only resize if dimensions actually changed — prevents spurious resize events
+  const needW=Math.round(w*dpr), needH=Math.round(h*dpr);
+  if(c.width!==needW || c.height!==needH){
+    c.width=needW; c.height=needH;
+    c.style.width=w+'px'; c.style.height=h+'px';
+  }
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {c,ctx,W:w,H:h};
+}
+function rr(ctx,x,y,w,h,r=4){if(w<2*r)r=w/2;if(h<2*r)r=h/2;ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+function noData(ctx,W,H,msg='No data'){ctx.fillStyle='#6b6d85';ctx.font='11px Plus Jakarta Sans,sans-serif';ctx.textAlign='center';ctx.fillText(msg,W/2,H/2);}
+
+function drawTrendChart(data){
+  const {ctx,W,H}=getCtx('chart-trend'); ctx.clearRect(0,0,W,H);
+  const years=[...new Set(CASES.map(d=>d.year).filter(y=>y&&y>=2000&&y<=2030))].sort();
+  if(!years.length){noData(ctx,W,H);return;}
+  const show=years.slice(-10), vals=show.map(y=>data.filter(d=>d.year===y).length);
+  const maxV=Math.max(...vals,1);
+  const pad={l:34,r:16,t:20,b:28}, cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  for(let i=0;i<=4;i++){const gy=pad.t+cH-(i/4)*cH;ctx.strokeStyle='#1c2036';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(pad.l+cW,gy);ctx.stroke();ctx.fillStyle='#6b6d85';ctx.font='8px JetBrains Mono,monospace';ctx.textAlign='right';ctx.fillText(Math.round(i/4*maxV),pad.l-4,gy+3);}
+  const pts=show.map((y,i)=>({x:pad.l+(i/Math.max(show.length-1,1))*cW,y:pad.t+cH-(vals[i]/maxV)*cH}));
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+cH);
+  grad.addColorStop(0,'rgba(201,168,76,.2)');grad.addColorStop(1,'rgba(201,168,76,0)');
+  ctx.beginPath();ctx.moveTo(pts[0].x,pad.t+cH);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,pad.t+cH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#c9a84c';ctx.lineWidth=2;ctx.lineJoin='round';pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+  pts.forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle='#c9a84c';ctx.fill();ctx.strokeStyle='#070810';ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle='#6b6d85';ctx.font='8px JetBrains Mono,monospace';ctx.textAlign='center';ctx.fillText(String(show[i]).slice(-2),p.x,H-5);if(vals[i]>0){ctx.fillStyle='#e8c97a';ctx.font='bold 8px JetBrains Mono,monospace';ctx.fillText(vals[i],p.x,p.y-7);}});
+}
+
+function drawSectorChart(data){
+  const {ctx,W,H}=getCtx('chart-sector'); ctx.clearRect(0,0,W,H);
+  const map={};data.forEach(d=>{map[d.sector]=(map[d.sector]||0)+1;});
+  const entries=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  if(!entries.length){noData(ctx,W,H);return;}
+  const pad={l:88,r:36,t:8,b:6},maxV=entries[0][1],total=data.length||1;
+  const bH=Math.min(18,(H-pad.t-pad.b-entries.length*6)/entries.length);
+  entries.forEach(([sec,val],i)=>{
+    const y=pad.t+i*(bH+6),bW=(W-pad.l-pad.r)*(val/maxV),col=SECTOR_COLORS[sec]||'#4a90d9';
+    ctx.fillStyle=col+'18';rr(ctx,pad.l,y,W-pad.l-pad.r,bH);ctx.fill();
+    if(bW>0){ctx.fillStyle=col;rr(ctx,pad.l,y,bW,bH);ctx.fill();}
+    ctx.fillStyle='#8890aa';ctx.font='9px Plus Jakarta Sans,sans-serif';ctx.textAlign='right';
+    ctx.fillText(sec.length>12?sec.slice(0,11)+'…':sec,pad.l-5,y+bH/2+3);
+    ctx.fillStyle='#e8c97a';ctx.font='bold 8px JetBrains Mono,monospace';ctx.textAlign='left';
+    ctx.fillText(`${val} (${Math.round(val/total*100)}%)`,pad.l+bW+5,y+bH/2+3);
+  });
+}
+
+function drawClaimsChart(data){
+  const {ctx,W,H}=getCtx('chart-claims'); ctx.clearRect(0,0,W,H);
+  const map={};data.forEach(d=>{map[d.claimType]=(map[d.claimType]||0)+1;});
+  const entries=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){noData(ctx,W,H);return;}
+  const pad={l:12,r:12,t:12,b:36},maxV=entries[0][1];
+  const gap=5,bW=(W-pad.l-pad.r-entries.length*gap)/entries.length;
+  entries.forEach(([claim,val],i)=>{
+    const x=pad.l+i*(bW+gap),cH=H-pad.t-pad.b,bh=cH*(val/maxV),y=pad.t+cH-bh;
+    const col=CLAIM_COLORS[claim]||'#4a90d9';
+    ctx.fillStyle=col+'18';rr(ctx,x,pad.t,bW,cH);ctx.fill();
+    ctx.fillStyle=col;rr(ctx,x,y,bW,bh);ctx.fill();
+    if(val>0){ctx.fillStyle='#e8c97a';ctx.font='bold 8px JetBrains Mono,monospace';ctx.textAlign='center';ctx.fillText(val,x+bW/2,y-4);}
+    const words=claim.split('/');ctx.fillStyle='#6b6d85';ctx.font='7px JetBrains Mono,monospace';ctx.textAlign='center';
+    words.forEach((w,wi)=>ctx.fillText(w,x+bW/2,H-pad.b+13+wi*10));
+  });
+}
+
+// ─── Notable Cases with secondary source links ────────────────────────────
+// ─── WORLD MAP ─────────────────────────────────────────────────────────────
+const COUNTRY_ISO3 = {
+  'India':'IND','Canada':'CAN','United Kingdom':'GBR','Germany':'DEU','China':'CHN',
+  'South Korea':'KOR','Denmark':'DNK','Netherlands':'NLD','France':'FRA','Italy':'ITA',
+  'Australia':'AUS','Spain':'ESP','Sweden':'SWE','Israel':'ISR','Singapore':'SGP',
+  'Brazil':'BRA','Japan':'JPN',
+};
+// ISO numeric IDs used by world-atlas topojson
+const COUNTRY_NUMERIC = {
+  'IND':356,'CAN':124,'GBR':826,'DEU':276,'CHN':156,'KOR':410,'DNK':208,
+  'NLD':528,'FRA':250,'ITA':380,'AUS':36,'ESP':724,'SWE':752,'ISR':376,
+  'SGP':702,'BRA':76,'JPN':392,
+};
+// Known centroids for bubble placement (fallback when topo unavailable)
+const COUNTRY_CENTROIDS = {
+  'India':[78.9,20.5],'Canada':[-96.8,56.1],'United Kingdom':[-3.4,55.3],
+  'Germany':[10.4,51.1],'China':[104.1,35.8],'South Korea':[127.7,35.9],
+  'Denmark':[9.5,56.2],'Netherlands':[5.3,52.1],'France':[2.2,46.2],
+  'Italy':[12.5,41.8],'Australia':[133.7,-25.2],'Spain':[-3.7,40.4],
+  'Sweden':[18.6,60.1],'Israel':[34.8,31.0],'Singapore':[103.8,1.3],
+  'Brazil':[-51.9,-14.2],'Japan':[138.2,36.2],'EU':[15.3,54.5],
+};
+
+let worldProjection = null;
+
+function drawWorldMap(intlCases) {
+  const svg = d3.select('#world-svg');
+  const loading = document.getElementById('world-loading');
+  const W = 960, H = 460;
+
+  // Build country stats
+  const countryCounts = {}, countryMeta = {};
+  intlCases.forEach(c => {
+    const key = c.country || 'Unknown';
+    countryCounts[key] = (countryCounts[key] || 0) + 1;
+    if (!countryMeta[key]) countryMeta[key] = { country:c.country, code:c.countryCode, lat:c.lat, lng:c.lng, cases:[] };
+    countryMeta[key].cases.push(c);
+  });
+  const maxC = Math.max(...Object.values(countryCounts), 1);
+
+  // Update subtitle
+  const intlCount = intlCases.length;
+  const countryCount = Object.keys(countryCounts).length;
+  set('intl-count-badge', `${intlCount} cases`);
+  set('world-sub', `${countryCount} countr${countryCount!==1?'ies':'y'} — click bubble to filter cases below`);
+
+  if (!worldTopoData) {
+    // Fallback: dot map with equirectangular projection
+    if (!worldInited) {
+      svg.selectAll('*').remove();
+      svg.append('rect').attr('width',W).attr('height',H).attr('fill','#08101e');
+      // Grid lines
+      for (let i=1;i<6;i++) {
+        svg.append('line').attr('x1',0).attr('y1',i*H/6).attr('x2',W).attr('y2',i*H/6).attr('stroke','#1a2040').attr('stroke-width',.3);
+        svg.append('line').attr('x1',i*W/6).attr('y1',0).attr('x2',i*W/6).attr('y2',H).attr('stroke','#1a2040').attr('stroke-width',.3);
+      }
+      worldInited = true;
+    }
+    worldProjection = d3.geoEquirectangular().scale(W/6.4).translate([W/2, H/2]);
+    _drawWorldBubbles(svg, countryCounts, countryMeta, maxC, W, H);
+    return;
+  }
+
+  // Full topojson world map
+  if (!worldInited) {
+    svg.selectAll('*').remove();
+    worldProjection = d3.geoNaturalEarth1().scale(155).translate([W/2, H/2]);
+    const pathGen = d3.geoPath().projection(worldProjection);
+
+    const countriesGeo = topojson.feature(worldTopoData, worldTopoData.objects.countries);
+    const borders = topojson.mesh(worldTopoData, worldTopoData.objects.countries, (a,b)=>a!==b);
+
+    const defs = svg.append('defs');
+    const grad = defs.append('linearGradient').attr('id','worldBg').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+    grad.append('stop').attr('offset','0%').attr('stop-color','#0b1220');
+    grad.append('stop').attr('offset','100%').attr('stop-color','#060810');
+
+    svg.append('rect').attr('width',W).attr('height',H).attr('fill','url(#worldBg)');
+    svg.append('path').datum({type:'Sphere'}).attr('d',pathGen).attr('fill','#09111d').attr('stroke','#192848').attr('stroke-width',.6);
+
+    svg.append('g').attr('class','world-countries')
+      .selectAll('path').data(countriesGeo.features).join('path')
+        .attr('class','wcp').attr('d',pathGen).attr('data-id',d=>d.id);
+
+    svg.append('path').datum(borders).attr('d',pathGen)
+      .attr('fill','none').attr('stroke','#1a2040').attr('stroke-width',.4)
+      .attr('pointer-events','none');
+
+    if (loading) loading.style.display = 'none';
+    worldInited = true;
+  }
+
+  // Build set of active numeric IDs
+  const activeIds = new Set();
+  Object.keys(countryMeta).forEach(name => {
+    const iso3 = COUNTRY_ISO3[name];
+    const num  = iso3 && COUNTRY_NUMERIC[iso3];
+    if (num) activeIds.add(num);
+  });
+
+  // Update choropleth fill
+  const pathGen2 = d3.geoPath().projection(worldProjection);
+  svg.select('.world-countries').selectAll('path')
+    .attr('d', pathGen2)  // re-project (handles resize)
+    .attr('fill', d => {
+      if (!activeIds.has(d.id)) return '#0d1828';
+      // find matching country name
+      const entry = Object.entries(countryMeta).find(([name]) => {
+        const iso3 = COUNTRY_ISO3[name];
+        return iso3 && COUNTRY_NUMERIC[iso3] === d.id;
+      });
+      if (!entry) return '#0d1828';
+      const t = entry[1].cases.length / maxC;
+      if (t < 0.3) return '#111e38';
+      if (t < 0.6) return '#1d3f78';
+      return '#8a6c1c';
+    })
+    .attr('stroke', d => activeIds.has(d.id) ? '#c9a84c55' : '#131e36')
+    .attr('stroke-width', d => activeIds.has(d.id) ? .8 : .3);
+
+  _drawWorldBubbles(svg, countryCounts, countryMeta, maxC, W, H);
+}
+
+function _drawWorldBubbles(svg, counts, meta, maxC, W, H) {
+  svg.selectAll('.wbub').remove();
+  const proj = worldProjection || d3.geoEquirectangular().scale(W/6.4).translate([W/2,H/2]);
+
+  Object.entries(meta).forEach(([name, cdata]) => {
+    const cnt = counts[name] || 0;
+    if (!cnt) return;
+
+    // Get position: use stored lat/lng, or fallback to known centroids
+    const coords = COUNTRY_CENTROIDS[name]
+      || (cdata.lng && cdata.lat ? [cdata.lng, cdata.lat] : null);
+    if (!coords) return;
+
+    const pos = proj(coords);
+    if (!pos || isNaN(pos[0])) return;
+
+    const r   = Math.max(16, Math.min(40, 12 + cnt * 4));
+    const t   = cnt / maxC;
+    const fill = t < 0.25 ? '#5b4ec9' : t < 0.55 ? '#2a6abf' : t < 0.8 ? '#c9a84c' : '#e05252';
+
+    const selCountry = geoSel && geoSel.type === 'country' ? geoSel.value : null;
+    const isSel = selCountry === name;
+    const isDim = selCountry && !isSel;
+
+    const g = svg.append('g').attr('class','wbub').style('cursor','pointer');
+
+    // Outer glow ring
+    g.append('circle')
+      .attr('cx',pos[0]).attr('cy',pos[1]).attr('r',r+7)
+      .attr('fill','none').attr('stroke',fill).attr('stroke-width',isSel?1.5:.5)
+      .attr('opacity',isSel?.7:(isDim?.05:.2));
+
+    // Main bubble
+    g.append('circle')
+      .attr('cx',pos[0]).attr('cy',pos[1]).attr('r',r)
+      .attr('fill',fill).attr('fill-opacity',isDim?.2:(isSel?1:.78))
+      .attr('stroke',isSel?'#e8c97a':fill).attr('stroke-width',isSel?2:.5).attr('stroke-opacity',.6);
+
+    // Country code label
+    g.append('text')
+      .attr('x',pos[0]).attr('y',pos[1]-3)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('font-size',r>=20?12:10).attr('font-family','JetBrains Mono,monospace')
+      .attr('fill','#ffffff').attr('font-weight','700').attr('pointer-events','none')
+      .text(cdata.code === 'EU' ? 'EU' : (cdata.code||name.slice(0,2).toUpperCase()));
+
+    // Count label
+    g.append('text')
+      .attr('x',pos[0]).attr('y',pos[1]+8)
+      .attr('text-anchor','middle').attr('font-size',12)
+      .attr('font-family','JetBrains Mono,monospace')
+      .attr('fill',isSel?'#fff':'#e8c97a').attr('font-weight','700').attr('pointer-events','none')
+      .text(cnt);
+
+    g.on('mouseenter', ev => _showWorldTip(ev, name, cdata, cnt))
+     .on('mousemove', moveTip)
+     .on('mouseleave', hideTip)
+     .on('click', ev => {
+       ev.preventDefault(); ev.stopPropagation();
+       selectCountry(name);
+     });
+  });
+}
+
+function _showWorldTip(ev, name, cdata, total) {
+  const claims = {}, sectors = {};
+  cdata.cases.forEach(c => {
+    claims[c.claimType]  = (claims[c.claimType] ||0)+1;
+    sectors[c.sector]    = (sectors[c.sector]   ||0)+1;
+  });
+  const topClaim  = Object.entries(claims).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const topSector = Object.entries(sectors).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const settled   = cdata.cases.filter(c=>c.outcome==='Settled').length;
+  document.getElementById('tt-state').textContent   = name;
+  document.getElementById('tt-count').textContent   = total;
+  document.getElementById('tt-claim').textContent   = topClaim;
+  document.getElementById('tt-sector').textContent  = topSector;
+  document.getElementById('tt-settled').textContent = settled;
+  showTipAt(ev);
+}
+
+
+function renderCases(data) {
+  const list = document.getElementById('cases-list');
+  const sorted = [...data].sort((a,b) => (b.year||0) - (a.year||0));
+  const show = sorted.slice(0, 18);
+  set('cases-count', `${data.length} total`);
+
+  if (!show.length) {
+    list.innerHTML='<p style="color:var(--muted2);font-size:12px;text-align:center;padding:24px 0">No cases match the current filters.</p>';
+    return;
+  }
+
+  list.innerHTML = show.map(c => {
+    const cc  = CLAIM_COLORS[c.claimType] || '#4a90d9';
+    const oc  = OUTCOME_COLORS[c.outcome] || '#6b6d85';
+    const org = c.orgsInvolved ? c.orgsInvolved.split(',')[0].trim() : '';
+    const loc = c.isInternational
+      ? `${c.country} · ${c.year||'—'} · ${c.sector}`
+      : `${c.stateName||c.state||'—'} · ${c.year||'—'} · ${c.sector}`;
+
+    // Case name: hyperlink to first secondary source if available (↗ icon indicates external link)
+    const primaryLink = secondaryUploaded && c.links && c.links.length > 0 ? c.links[0] : null;
+    const nameHtml = primaryLink
+      ? `<a href="${esc(primaryLink.url)}" target="_blank" rel="noopener noreferrer" title="${esc(primaryLink.title||'Read source')}">${esc(c.caption||'Unknown Case')} <span class="ext-icon">↗</span></a>`
+      : esc(c.caption || 'Unknown Case');
+
+    return `<div class="case-item">
+      <div class="case-dot" style="background:${cc}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="case-name">${nameHtml}</div>
+        <div class="case-meta">${esc(loc)}${org?' · '+esc(org):''}</div>
+        <div class="tags">
+          <span class="tag" style="border-color:${cc}44;color:${cc}">${esc(c.claimType)}</span>
+          <span class="tag" style="border-color:${oc}44;color:${oc}">${esc(c.outcome)}</span>
+          ${c.classAction==='Yes'?`<span class="tag" style="border-color:#c9a84c44;color:var(--accent)">Class Action</span>`:''}
+          ${c.isInternational?`<span class="tag" style="border-color:#9b7fe844;color:var(--purple)">🌍 ${esc(c.country)}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let rzTimer;
+window.addEventListener('resize', ()=>{ if(_isRendering) return; clearTimeout(rzTimer); rzTimer=setTimeout(()=>{ if(CASES.length) render(); },400); });
+
+init();
+</script>
+</body>
+</html>
