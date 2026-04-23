@@ -74,12 +74,16 @@ The TrusLex platform takes raw litigation data and transforms it into:
 
 ## 🧱 Tech Stack
 
+## Tech Stack
+
 | Component | Technology |
-|-----------|------------|
-| Frontend UI | React / JavaScript / HTML / CSS |
-| Backend API | Node.js (server.js) |
-| Data | JSON / local datasets |
-| Visualization | Charts (likely Chart.js / D3 / Plotly) |
-| Deployment | GitHub Pages 
+|---|---|
+| Frontend UI | HTML / CSS / JavaScript |
+| Data Loading | SheetJS (`xlsx`) |
+| Data | XLSX uploads / local JSON map assets |
+| Visualization | D3.js / Canvas / TopoJSON |
+| Backend API | None |
+| Deployment | GitHub Pages |
+
 
 
