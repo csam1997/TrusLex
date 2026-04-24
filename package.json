@@ -1,0 +1,20 @@
+{
+  "name": "truslex-static",
+  "version": "1.0.0",
+  "description": "AI lawsuits are exploding across America — but the data is buried where no one can see it. TrusLex makes it visible.",
+  "main": "index.html",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "playwright test --reporter=line",
+    "test:smoke": "playwright test --reporter=line"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
