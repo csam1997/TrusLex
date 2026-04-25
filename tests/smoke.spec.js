@@ -21,12 +21,16 @@ async function getMapSize(page) {
   });
 }
 
-test('demo button loads bundled sample data', async ({ page }) => {
+test('demo button loads bundled sample data without corrupted separators', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Load Demo' }).click();
   await expect(page.locator('#dashboard')).toBeVisible();
-  await expect(page.locator('#s-total')).not.toHaveText('â€”');
+  await expect(page.locator('#s-total')).not.toHaveText('—');
   await expect(page.locator('#cases-list .case-item').first()).toBeVisible();
+  await expect(page.locator('#cases-list')).not.toContainText('Ã');
+  await expect(page.locator('#cases-list')).not.toContainText('Â');
+  await expect(page.locator('#cases-list')).not.toContainText('Ãƒâ€šÃ‚Â·');
+  await expect(page.locator('#s-trend')).not.toContainText('â');
 });
 
 test('dashboard renders sample dataset with working maps', async ({ page }) => {
